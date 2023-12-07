@@ -49,6 +49,17 @@
             text-decoration: underline; /* Adds underline on hover/focus for emphasis */
         }
 
+        .row {
+            display: flex;
+            flex-direction: row; /* Changed to 'row' for the second row */
+            justify-content: center; /* Center the content */
+            margin-bottom: 10px;
+        }
+
+        .column {
+            flex: 1; /* Adjusted for equal-width columns */
+            padding: 5px;
+        }
 
         .button {
             background-color: #7DA2A9;
@@ -84,8 +95,18 @@
     aims to offer critical insights for researchers, policymakers, and environmentalists. Future phases may explore the
     integration of predictive analytics to enhance the tool's capabilities.</p>
 
-<a href="Timelapse/timelapse.html" class="button">Timelapse from 2000 to 2019</a>
-<a href="Precipitation/precipitation.html" class="button">Washington'19 Precipitation Overview</a>
+<div class="row">
+    <a href="Timelapse/timelapse.html" class="button">Timelapse from 2000 to 2019</a>
+</div>
+
+<div class="row">
+    <div class="column">
+        <a href="PrecipitationGD/precipitation.html" class="button">Washington'19 Precipitation Overview using Gradient Boosting</a>
+    </div>
+    <div class="column">
+        <a href="PrecipitationLSTM/precipitation.html" class="button">Washington'19 Precipitation Overview using Long Short-Term Memory</a>
+    </div>
+</div>
 
 </body>
 </html>

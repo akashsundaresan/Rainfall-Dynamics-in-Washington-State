@@ -5,7 +5,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19,
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(predictedMap);
 
 const getColor = (precipitation) => {
-    return precipitation < 0.05 ? '#008000' : precipitation < 0.2 ? '#0000ff' : '#ff0000';
+    return precipitation < 1 ? '#008000' : precipitation < 2.22 ? '#0000ff' : '#ff0000';
 };
 
 const createPoints = (data, map) => {
