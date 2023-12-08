@@ -1,8 +1,12 @@
 const actualMap = L.map('actual-map').setView([47.7511, -120.7401], 7);
 const predictedMap = L.map('predicted-map').setView([47.7511, -120.7401], 7);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(actualMap);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(predictedMap);
+// OpenTopoMap tile layer
+const topologicalTileLayer = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+
+// Add topological tiles to the maps
+L.tileLayer(topologicalTileLayer, { maxZoom: 17, attribution: '© OpenStreetMap contributors, © OpenTopoMap' }).addTo(actualMap);
+L.tileLayer(topologicalTileLayer, { maxZoom: 17, attribution: '© OpenStreetMap contributors, © OpenTopoMap' }).addTo(predictedMap);
 
 const getColor = (precipitation) => {
     return precipitation < 1 ? '#008000' : precipitation < 5 ? '#0000ff' : '#ff0000';
@@ -15,7 +19,20 @@ const createPoints = (data, map) => {
     window[map._container.id + 'Layer'] = L.layerGroup().addTo(map);
     data.forEach(d => {
         const color = getColor(d.PRECIPITATION);
-        L.circle([d.LAT, d.LON], { color, fillColor: color, fillOpacity: 0.7, radius: 5000 }).addTo(window[map._container.id + 'Layer']);
+        const circle = L.circle([d.LAT, d.LON], { color, fillColor: color, fillOpacity: 0.7, radius: 5000 });
+
+        // Tooltip content
+        const tooltipContent = `
+            <strong>Coordinates:</strong> ${d.LAT}, ${d.LON}<br>
+            <strong>Elevation:</strong> ${d.ELEVATION} m<br>
+            <strong>Temperature:</strong> ${d.TEMP} °C<br>
+            <strong>USAF Station:</strong> ${d.USAF}
+        `;
+
+        // Bind the tooltip to the circle marker
+        circle.bindTooltip(tooltipContent, { permanent: false, direction: "auto" });
+
+        circle.addTo(window[map._container.id + 'Layer']);
     });
 };
 
@@ -45,7 +62,10 @@ const processData = (data, filename) => {
         MONTH: +d.MONTH,
         LAT: +d.LAT,
         LON: +d.LON,
-        PRECIPITATION: +d.PRCP
+        PRECIPITATION: +d.PRCP,
+        ELEVATION: +d['ELEV(M)'],
+        TEMP: +d.TEMP,
+        USAF: d.USAF
     }));
 };
 

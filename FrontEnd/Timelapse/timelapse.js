@@ -1,10 +1,11 @@
 // Initialize the Leaflet map
 const map = L.map('map').setView([47.7511, -120.7401], 7); // Centered on Washington State
 
-// Add a base layer (OpenStreetMap)
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© OpenStreetMap contributors'
+// Add a base layer (OpenTopoMap)
+L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    maxZoom: 17, // Adjust maxZoom if needed
+    attribution: 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)',
+    opacity: 0.8
 }).addTo(map);
 
 // Function to determine the color based on precipitation
@@ -14,7 +15,7 @@ const getColor = (precipitation) => {
     else return '#ff0000'; // Red for high precipitation
 };
 
-// Function to create points with varying colors
+// Function to create points with varying colors and tooltips
 const createPoints = (data, sliderValue) => {
     // Calculate year and month from sliderValue
     const year = Math.floor(sliderValue / 12) + 2000;
@@ -31,15 +32,28 @@ const createPoints = (data, sliderValue) => {
     // Create a new layer for data points
     window.dataLayer = L.layerGroup().addTo(map);
 
-    // Add circles to the data layer with varying colors
+    // Add circles to the data layer with varying colors and tooltips
     filteredData.forEach(d => {
         const color = getColor(d.PRECIPITATION);
-        L.circle([d.LAT, d.LON], {
+        const circle = L.circle([d.LAT, d.LON], {
             color: color,
             fillColor: color,
             fillOpacity: 0.7,
             radius: 5000 // Adjust as needed
-        }).addTo(window.dataLayer);
+        });
+
+        // Tooltip content
+        const tooltipContent = `
+            <strong>Coordinates:</strong> ${d.LAT}, ${d.LON}<br>
+            <strong>Elevation:</strong> ${d['ELEV(M)']} m<br>
+            <strong>Temperature:</strong> ${d.TEMP} °C<br>
+            <strong>USAF Station:</strong> ${d.USAF}
+        `;
+
+        // Bind the tooltip to the circle marker
+        circle.bindTooltip(tooltipContent, { permanent: false, direction: "auto" });
+
+        circle.addTo(window.dataLayer);
     });
 };
 
@@ -52,6 +66,9 @@ d3.csv('WashingtonWeather.csv').then(data => {
         d.LAT = +d.LAT;
         d.LON = +d.LON;
         d.PRECIPITATION = +d.PRCP; 
+        d['ELEV(M)'] = +d['ELEV(M)']; // Ensure elevation is a number
+        d.TEMP = +d.TEMP; // Assuming TEMP is your temperature column
+        d.USAF = d.USAF; // Assuming USAF is your station code column
     });
 
     // Add event listener to the slider
