@@ -5,7 +5,7 @@ const map = L.map('map').setView([47.7511, -120.7401], 7); // Centered on Washin
 L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
     maxZoom: 17, // Adjust maxZoom if needed
     attribution: 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)',
-    opacity: 0.8
+    opacity:0.7
 }).addTo(map);
 
 // Function to determine the color based on precipitation

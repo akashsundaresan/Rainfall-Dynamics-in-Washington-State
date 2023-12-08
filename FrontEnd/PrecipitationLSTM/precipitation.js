@@ -5,23 +5,28 @@ const predictedMap = L.map('predicted-map').setView([47.7511, -120.7401], 7);
 const topologicalTileLayer = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
 
 // Add topological tiles to the maps
-L.tileLayer(topologicalTileLayer, { maxZoom: 17, attribution: '© OpenStreetMap contributors, © OpenTopoMap' }).addTo(actualMap);
-L.tileLayer(topologicalTileLayer, { maxZoom: 17, attribution: '© OpenStreetMap contributors, © OpenTopoMap' }).addTo(predictedMap);
+L.tileLayer(topologicalTileLayer, { maxZoom: 17, attribution: '© OpenStreetMap contributors, © OpenTopoMap', opacity: 0.7}).addTo(actualMap);
+L.tileLayer(topologicalTileLayer, { maxZoom: 17, attribution: '© OpenStreetMap contributors, © OpenTopoMap', opacity: 0.7}).addTo(predictedMap);
 
-const getColor = (precipitation) => {
-    return precipitation < 1 ? '#008000' : precipitation < 2.22 ? '#0000ff' : '#ff0000';
+const getColorActual = (precipitation) => {
+    return precipitation < 0.008 ? '#008000' : 
+           precipitation < 0.025 ? '#0000ff' : '#ff0000';
 };
 
-const createPoints = (data, map) => {
+const getColorPredicted = (precipitation) => {
+    return precipitation < 0.05 ? '#008000' : 
+           precipitation < 0.2 ? '#0000ff' : '#ff0000';
+};
+
+const createPoints = (data, map, getColorFunction) => {
     if (window[map._container.id + 'Layer']) {
         window[map._container.id + 'Layer'].remove();
     }
     window[map._container.id + 'Layer'] = L.layerGroup().addTo(map);
     data.forEach(d => {
-        const color = getColor(d.PRECIPITATION);
+        const color = getColorFunction(d.PRECIPITATION);
         const circle = L.circle([d.LAT, d.LON], { color, fillColor: color, fillOpacity: 0.7, radius: 5000 });
 
-        // Tooltip content
         const tooltipContent = `
             <strong>Coordinates:</strong> ${d.LAT}, ${d.LON}<br>
             <strong>Elevation:</strong> ${d.ELEVATION} m<br>
@@ -29,9 +34,7 @@ const createPoints = (data, map) => {
             <strong>USAF Station:</strong> ${d.USAF}
         `;
 
-        // Bind the tooltip to the circle marker
         circle.bindTooltip(tooltipContent, { permanent: false, direction: "auto" });
-
         circle.addTo(window[map._container.id + 'Layer']);
     });
 };
@@ -46,17 +49,17 @@ Promise.all([
     document.getElementById('time-slider').addEventListener('input', function() {
         const sliderValue = parseInt(this.value);
         updateDisplay(sliderValue);
-        createPoints(filterData(actualData, sliderValue), actualMap);
-        createPoints(filterData(predictedData, sliderValue), predictedMap);
+        createPoints(filterData(actualData, sliderValue), actualMap, getColorActual);
+        createPoints(filterData(predictedData, sliderValue), predictedMap, getColorPredicted);
     });
 
     updateDisplay(0);
-    createPoints(filterData(actualData, 0), actualMap);
-    createPoints(filterData(predictedData, 0), predictedMap);
+    createPoints(filterData(actualData, 0), actualMap, getColorActual);
+    createPoints(filterData(predictedData, 0), predictedMap, getColorPredicted);
 });
 
 const processData = (data, filename) => {
-    console.log(`Processing data from ${filename}`, data); // Debugging line
+    console.log(`Processing data from ${filename}`, data);
     return data.map(d => ({
         YEAR: +d.YEAR,
         MONTH: +d.MONTH,
@@ -70,17 +73,16 @@ const processData = (data, filename) => {
 };
 
 const filterData = (data, sliderValue) => {
-    const month = (sliderValue % 4) + 1; 
-    console.log(`Filtering data for month: ${month}`); // Debugging line
+    const month = (sliderValue % 2) + 1;
+    console.log(`Filtering data for month: ${month}`);
     return data.filter(d => d.YEAR === 2019 && d.MONTH === month);
 };
 
 const updateDisplay = (sliderValue) => {
-    const monthNames = ["January", "February", "March", "April"];
+    const monthNames = ["January", "February"];
     document.getElementById('date-display').textContent = `${monthNames[sliderValue]} 2019`;
 };
 
-// Function to add legends to the maps
 const addLegend = (map) => {
     const legend = L.control({ position: 'bottomright' });
 
@@ -104,6 +106,5 @@ const addLegend = (map) => {
     legend.addTo(map);
 };
 
-// Add legends to both maps
 addLegend(actualMap);
 addLegend(predictedMap);
